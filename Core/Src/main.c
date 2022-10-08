@@ -100,6 +100,8 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 
+  HAL_UART_Receive_IT(&huart2,(uint8_t*)rx_buffer, 50);
+
   /* USER CODE END 2 */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -253,6 +255,17 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)		// USART Interrupt Receive Function
+{
+	HAL_UART_Receive_IT(&huart2,(uint8_t*)rx_buffer, 50);
+
+    if (huart->Instance == USART2)
+    {
+          HAL_UART_Transmit_IT(&huart2, (uint8_t*)rx_buffer, 50);
+    }
+}
+
+
 /* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_StartTask01 */
@@ -273,6 +286,7 @@ void StartTask01(void const * argument)
 
 	  HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_12);
 	  HAL_Delay(500);
+
   }
   /* USER CODE END 5 */
 }

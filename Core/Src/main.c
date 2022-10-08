@@ -23,6 +23,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
+#include <stdio.h>		// included stdio.h libraries
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -45,6 +47,9 @@ UART_HandleTypeDef huart2;
 osThreadId Task01Handle;
 osThreadId Task02Handle;
 /* USER CODE BEGIN PV */
+
+char tx_buffer[50];
+char rx_buffer[50];
 
 /* USER CODE END PV */
 
@@ -119,7 +124,7 @@ int main(void)
   Task01Handle = osThreadCreate(osThread(Task01), NULL);
 
   /* definition and creation of Task02 */
-  osThreadDef(Task02, StartTask02, osPriorityIdle, 0, 128);
+  osThreadDef(Task02, StartTask02, osPriorityNormal, 0, 128);
   Task02Handle = osThreadCreate(osThread(Task02), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
@@ -263,7 +268,11 @@ void StartTask01(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+	  HAL_UART_Transmit_IT(&huart2, (uint8_t*)tx_buffer, sprintf(tx_buffer, "Task01 Work ! \r\n"));		// TASK01 USART Transmit and Cooperative Multitasking test.
+	  osDelay(1000);
+
+	  HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_12);
+	  HAL_Delay(500);
   }
   /* USER CODE END 5 */
 }
@@ -281,7 +290,11 @@ void StartTask02(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+	  HAL_UART_Transmit_IT(&huart2, (uint8_t*)tx_buffer, sprintf(tx_buffer, "Task02 Work ! \r\n"));		// TASK02 USART Transmit and Cooperative Multitasking test.
+	  osDelay(1000);
+
+	  HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_13);
+	  HAL_Delay(100);
   }
   /* USER CODE END StartTask02 */
 }

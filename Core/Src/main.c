@@ -48,9 +48,12 @@ osThreadId Task01Handle;
 osThreadId Task02Handle;
 /* USER CODE BEGIN PV */
 
-char tx_buffer[50];
-char rx_buffer[50];
+char tx_buffer[20];
+char rx_buffer[20] = "receive";
+char rx_call_buffer[20];
 uint8_t rx_stop = 0;
+
+int i=0;
 
 /* USER CODE END PV */
 
@@ -256,7 +259,7 @@ static void MX_GPIO_Init(void)
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)		// USART Interrupt Receive Function
 {
-	HAL_UART_Receive_IT(&huart2,(uint8_t*)rx_buffer, 50);
+	HAL_UART_Receive_IT(&huart2,(uint8_t*)rx_buffer, 20);
 }
 
 
@@ -278,7 +281,7 @@ void StartTask01(void const * argument)		// LEDON - LEDOFF TASK.
 	  HAL_UART_Transmit_IT(&huart2, (uint8_t*)tx_buffer, sprintf(tx_buffer, "Task01 Work ! \r\n"));		// TASK01 USART Transmit and Cooperative Multitasking test.
 	  osDelay(1000);
 
-	  HAL_UART_Receive_IT(&huart2,(uint8_t*)rx_buffer, 50);
+	  HAL_UART_Receive_IT(&huart2,(uint8_t*)rx_buffer, 20);
 
 	  if (rx_buffer[0] == 's' && rx_buffer[1] == 't' && rx_buffer[2] == 'a' && rx_buffer[3] == 'r' && rx_buffer[4] == 't')
 	  {
@@ -320,12 +323,18 @@ void StartTask02(void const * argument)		// ECHO TASK.
 	  HAL_UART_Transmit_IT(&huart2, (uint8_t*)tx_buffer, sprintf(tx_buffer, "Task02 Work ! \r\n"));		// TASK02 USART Transmit and Cooperative Multitasking test.
 	  osDelay(1000);
 
-	  HAL_UART_Receive_IT(&huart2,(uint8_t*)rx_buffer, 50);
+	  HAL_UART_Receive_IT(&huart2,(uint8_t*)rx_buffer, 20);
 
 	  if (rx_buffer[0] == 's' && rx_buffer[1] == 't' && rx_buffer[2] == 'o' && rx_buffer[3] == 'p')		// Echo task will be suspend with "stop" string.
 	  {
 		  rx_stop = 1;
-		  HAL_UART_Receive_IT(&huart2, (uint8_t*)rx_buffer, 50);
+
+		  for (i; i<20; i++)
+		  {
+			  rx_buffer[i] = '\0';
+		  }
+		  i=0;
+
 		  vTaskSuspend(Task02Handle);
 	  }
 

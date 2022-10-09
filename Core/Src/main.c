@@ -50,6 +50,7 @@ osThreadId Task02Handle;
 
 char tx_buffer[50];
 char rx_buffer[50];
+uint8_t rx_stop = 0;
 
 /* USER CODE END PV */
 
@@ -99,8 +100,6 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-
-  HAL_UART_Receive_IT(&huart2,(uint8_t*)rx_buffer, 50);
 
   /* USER CODE END 2 */
 
@@ -258,11 +257,6 @@ static void MX_GPIO_Init(void)
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)		// USART Interrupt Receive Function
 {
 	HAL_UART_Receive_IT(&huart2,(uint8_t*)rx_buffer, 50);
-
-    if (huart->Instance == USART2)
-    {
-          HAL_UART_Transmit_IT(&huart2, (uint8_t*)rx_buffer, 50);
-    }
 }
 
 
@@ -275,7 +269,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)		// USART Interrupt Rece
   * @retval None
   */
 /* USER CODE END Header_StartTask01 */
-void StartTask01(void const * argument)
+void StartTask01(void const * argument)		// LEDON - LEDOFF TASK.
 {
   /* USER CODE BEGIN 5 */
   /* Infinite loop */
@@ -284,8 +278,27 @@ void StartTask01(void const * argument)
 	  HAL_UART_Transmit_IT(&huart2, (uint8_t*)tx_buffer, sprintf(tx_buffer, "Task01 Work ! \r\n"));		// TASK01 USART Transmit and Cooperative Multitasking test.
 	  osDelay(1000);
 
-	  HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_12);
-	  HAL_Delay(500);
+	  HAL_UART_Receive_IT(&huart2,(uint8_t*)rx_buffer, 50);
+
+	  if (rx_buffer[0] == 's' && rx_buffer[1] == 't' && rx_buffer[2] == 'a' && rx_buffer[3] == 'r' && rx_buffer[4] == 't')
+	  {
+		  vTaskResume(Task02Handle);
+		  rx_stop = 0;
+	  }
+
+	  if (rx_stop == 0)
+	  {
+		  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_SET);
+		  HAL_Delay(300);
+		  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_RESET);
+		  HAL_Delay(700);
+	  }
+
+	  else if (rx_stop == 1)
+	  {
+		  HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_12);		// Led state control with "stop" string
+		  HAL_Delay(1000);
+	  }
 
   }
   /* USER CODE END 5 */
@@ -298,7 +311,7 @@ void StartTask01(void const * argument)
 * @retval None
 */
 /* USER CODE END Header_StartTask02 */
-void StartTask02(void const * argument)
+void StartTask02(void const * argument)		// ECHO TASK.
 {
   /* USER CODE BEGIN StartTask02 */
   /* Infinite loop */
@@ -307,8 +320,17 @@ void StartTask02(void const * argument)
 	  HAL_UART_Transmit_IT(&huart2, (uint8_t*)tx_buffer, sprintf(tx_buffer, "Task02 Work ! \r\n"));		// TASK02 USART Transmit and Cooperative Multitasking test.
 	  osDelay(1000);
 
+	  HAL_UART_Receive_IT(&huart2,(uint8_t*)rx_buffer, 50);
+
+	  if (rx_buffer[0] == 's' && rx_buffer[1] == 't' && rx_buffer[2] == 'o' && rx_buffer[3] == 'p')		// Echo task will be suspend with "stop" string.
+	  {
+		  rx_stop = 1;
+		  HAL_UART_Receive_IT(&huart2, (uint8_t*)rx_buffer, 50);
+		  vTaskSuspend(Task02Handle);
+	  }
+
 	  HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_13);
-	  HAL_Delay(100);
+	  HAL_Delay(1000);
   }
   /* USER CODE END StartTask02 */
 }

@@ -55,11 +55,10 @@ char tx_buffer[20];
 char rx_buffer[10];
 char rx_call_buffer[1];
 uint8_t rx_stop = 0;
-uint8_t led_case = 0;
 uint8_t rx_ledon = 0;
 uint8_t rx_ledoff = 0;
-uint8_t count =0;
-
+uint8_t count = 0;
+uint8_t i = 0;
 
 /* USER CODE END PV */
 
@@ -67,8 +66,8 @@ uint8_t count =0;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
-void StartTask01(void const * argument);
-void StartTask02(void const * argument);
+void LEDTask01(void const * argument);
+void ECHOTask02(void const * argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -130,11 +129,11 @@ int main(void)
 
   /* Create the thread(s) */
   /* definition and creation of Task01 */
-  osThreadDef(Task01, StartTask01, osPriorityNormal, 0, 128);
+  osThreadDef(Task01, LEDTask01, osPriorityNormal, 0, 128);
   Task01Handle = osThreadCreate(osThread(Task01), NULL);
 
   /* definition and creation of Task02 */
-  osThreadDef(Task02, StartTask02, osPriorityNormal, 0, 128);
+  osThreadDef(Task02, ECHOTask02, osPriorityNormal, 0, 128);
   Task02Handle = osThreadCreate(osThread(Task02), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
@@ -279,50 +278,51 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)		// USART Interrupt Rece
 
 /* USER CODE END 4 */
 
-/* USER CODE BEGIN Header_StartTask01 */
+/* USER CODE BEGIN Header_LEDTask01 */
 /**
   * @brief  Function implementing the Task01 thread.
   * @param  argument: Not used
   * @retval None
   */
-/* USER CODE END Header_StartTask01 */
-void StartTask01(void const * argument)		// LEDON - LEDOFF TASK.
+/* USER CODE END Header_LEDTask01 */
+void LEDTask01(void const * argument)
 {
   /* USER CODE BEGIN 5 */
   /* Infinite loop */
   for(;;)
   {
-	  HAL_UART_Transmit_IT(&huart2, (uint8_t*)tx_buffer, sprintf(tx_buffer, "Task01 Work ! \r\n"));		// TASK01 USART Transmit and Cooperative Multitasking test.
-	  osDelay(1000);
-
 	  HAL_UART_Receive_IT(&huart2,(uint8_t*)rx_call_buffer, 1);
 
       if (rx_buffer[0] == 's' && rx_buffer[1] == 't' && rx_buffer[2] == 'a' && rx_buffer[3] == 'r' && rx_buffer[4] == 't')		// "start" string.
 	  {
 		  vTaskResume(Task02Handle);
 		  rx_stop = 0;
+		  strcpy (tx_buffer, rx_buffer);
+		  i = 6;
 	  }
 
-	  if (rx_buffer[0] == 'l' && rx_buffer[1] == 'e' && rx_buffer[2] == 'd' && rx_buffer[3] == 'o' && rx_buffer[4] == 'n' &&	// "ledon500" string.
+      else if (rx_buffer[0] == 'l' && rx_buffer[1] == 'e' && rx_buffer[2] == 'd' && rx_buffer[3] == 'o' && rx_buffer[4] == 'n' &&	// "ledon500" string.
 			  rx_buffer[5] == '5' && rx_buffer[6] == '0' && rx_buffer[7] == '0')
 	  {
-		  HAL_UART_Transmit_IT(&huart2, (uint8_t*)rx_buffer, 10);
-		  led_case = 1;
+		  rx_ledon = 1;
+		  strcpy (tx_buffer, rx_buffer);
+		  i = 9;
 	  }
 
-	  if (rx_buffer[0] == 'l' && rx_buffer[1] == 'e' && rx_buffer[2] == 'd' && rx_buffer[3] == 'o' && rx_buffer[4] == 'f' &&	// "ledoff500" string.
+      else if (rx_buffer[0] == 'l' && rx_buffer[1] == 'e' && rx_buffer[2] == 'd' && rx_buffer[3] == 'o' && rx_buffer[4] == 'f' &&	// "ledoff500" string.
 			  rx_buffer[5] == 'f' && rx_buffer[6] == '5' && rx_buffer[7] == '0' && rx_buffer[8] == '0')
 	  {
-		  HAL_UART_Transmit_IT(&huart2, (uint8_t*)rx_buffer, 10);
-		  led_case = 2;
+		  rx_ledoff = 1;
+		  strcpy (tx_buffer, rx_buffer);
+		  i = 10;
 	  }
 
-	  if (rx_stop == 0 && rx_ledon == 0 && rx_ledoff == 0)		// Default mode.
+      if (rx_stop == 0 && rx_ledon == 0 && rx_ledoff == 0)		// Default mode.
 	  {
 		  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_SET);
-		  HAL_Delay(2000);
+		  HAL_Delay(300);
 		  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_RESET);
-		  HAL_Delay(2000);
+		  HAL_Delay(700);
 	  }
 
 	  else if (rx_stop == 1)
@@ -331,37 +331,26 @@ void StartTask01(void const * argument)		// LEDON - LEDOFF TASK.
 		  HAL_Delay(1000);
 	  }
 
-	  switch (led_case)			// "Ledon500" and "ledoff500" setting with switch-case operation.
-	  {
-	  case 1:
-		  rx_ledon = 1;
-		  break;
-
-	  case 2:
-		  rx_ledoff = 1;
-		  break;
-	  }
-
-	  if (rx_stop == 0 && rx_ledon == 1 && rx_ledoff == 0)			// Only "ledon500" string receive state.
+	  else if (rx_stop == 0 && rx_ledon == 1 && rx_ledoff == 0)			// Only "ledon500" string receive state.
 	  {
 		  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_SET);
 		  HAL_Delay(500);
 		  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_RESET);
-		  HAL_Delay(300);
+		  HAL_Delay(700);
 	  }
 
-	  if (rx_stop == 0 && rx_ledon == 1 && rx_ledoff == 1)			// "ledon500" && "ledoff500" strings receive state.
+	  else if (rx_stop == 0 && rx_ledon == 1 && rx_ledoff == 1)			// "ledon500" && "ledoff500" strings receive state.
 	  {
 		  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_SET);
-		  HAL_Delay(3000);
+		  HAL_Delay(500);
 		  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_RESET);
-		  HAL_Delay(3000);
+		  HAL_Delay(500);
 	  }
 
-	  if (rx_stop == 0 && rx_ledon == 0 && rx_ledoff == 1)			// Only "ledoff500" string receive state.
+	  else if (rx_stop == 0 && rx_ledon == 0 && rx_ledoff == 1)			// Only "ledoff500" string receive state.
 	  {
 		  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_SET);
-		  HAL_Delay(3000);
+		  HAL_Delay(300);
 		  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_RESET);
 		  HAL_Delay(500);
 	  }
@@ -370,35 +359,34 @@ void StartTask01(void const * argument)		// LEDON - LEDOFF TASK.
   /* USER CODE END 5 */
 }
 
-/* USER CODE BEGIN Header_StartTask02 */
+/* USER CODE BEGIN Header_ECHOTask02 */
 /**
 * @brief Function implementing the Task02 thread.
 * @param argument: Not used
 * @retval None
 */
-/* USER CODE END Header_StartTask02 */
-void StartTask02(void const * argument)		// ECHO TASK.
+/* USER CODE END Header_ECHOTask02 */
+void ECHOTask02(void const * argument)
 {
-  /* USER CODE BEGIN StartTask02 */
+  /* USER CODE BEGIN ECHOTask02 */
   /* Infinite loop */
   for(;;)
   {
-	  HAL_UART_Transmit_IT(&huart2, (uint8_t*)tx_buffer, sprintf(tx_buffer, "Task02 Work ! \r\n"));		// TASK02 USART Transmit and Cooperative Multitasking test.
+//	  HAL_UART_Transmit_IT(&huart2, (uint8_t*)tx_buffer, sprintf(tx_buffer, "Task02 Work ! \r\n"));		// TASK02 USART Transmit and Cooperative Multitasking test.
+//	  osDelay(1000);
+
+	  HAL_UART_Transmit_IT(&huart2, (uint8_t*)tx_buffer, i);		// ECHO working in this line.
 	  osDelay(1000);
 
 	  HAL_UART_Receive_IT(&huart2,(uint8_t*)rx_call_buffer, 1);
 
 	  if (rx_buffer[0] == 's' && rx_buffer[1] == 't' && rx_buffer[2] == 'o' && rx_buffer[3] == 'p')		// Echo task will be suspend with "stop" string.
 	  {
-		  HAL_UART_Transmit_IT(&huart2, (uint8_t*)rx_buffer, 10);
 		  rx_stop = 1;
 		  vTaskSuspend(Task02Handle);
 	  }
-
-	  HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_13);
-	  HAL_Delay(1000);
   }
-  /* USER CODE END StartTask02 */
+  /* USER CODE END ECHOTask02 */
 }
 
 /**

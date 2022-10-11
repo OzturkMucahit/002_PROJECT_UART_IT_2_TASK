@@ -624,8 +624,8 @@ static void MX_USART2_UART_Init(void)
  8000650:	b580      	push	{r7, lr}
  8000652:	b082      	sub	sp, #8
  8000654:	af00      	add	r7, sp, #0
-
-  /* USER CODE END USART2_Init 1 */
+  *																									        *
+  ***********************************************************************************************************/
 
 	Uart_InitTypeDef Uart_InitStruct;
 
@@ -1051,10 +1051,11 @@ static void MX_GPIO_Init(void)
  800090c:	40020c00 	.word	0x40020c00
 
 08000910 <HAL_UART_RxCpltCallback>:
+  * 				   count each index of the data and write in rx_buffer. 		  						*
+  *																									  		*
+  **********************************************************************************************************/
 
-/* USER CODE BEGIN 4 */
-
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)		// USART Interrupt Receive Function
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
  8000910:	b580      	push	{r7, lr}
  8000912:	b082      	sub	sp, #8
@@ -1106,8 +1107,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)		// USART Interrupt Rece
  8000960:	20000280 	.word	0x20000280
 
 08000964 <LEDTask01>:
-  * @retval None
-  */
+  *																									    	*
+  **********************************************************************************************************/
 
 /* USER CODE END Header_LEDTask01 */
 void LEDTask01(void const * argument)
@@ -1435,9 +1436,9 @@ void LEDTask01(void const * argument)
  8000bc0:	40020c00 	.word	0x40020c00
 
 08000bc4 <ECHOTask02>:
-* @param argument: Not used
-* @retval None
-*/
+  *																										    *
+  **********************************************************************************************************/
+
 /* USER CODE END Header_ECHOTask02 */
 void ECHOTask02(void const * argument)
 {

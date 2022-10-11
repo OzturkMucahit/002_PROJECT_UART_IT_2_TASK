@@ -23,7 +23,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
-#include <stdio.h>		// included stdio.h libraries
+#include <stdio.h>
 #include <string.h>
 
 /* USER CODE END Includes */
@@ -223,6 +223,14 @@ static void MX_USART2_UART_Init(void)
 
   /* USER CODE END USART2_Init 1 */
 
+  /**********************************************************************************************************
+  *																									   	    *
+  * 	STRUCT		 : Uart_InitTypeDef															    		*
+  * 	DESCRIPTIONS : Uart initialization parameters struct. Configure the uart initialization parameters  *
+  *				   with switch-case operation.															    *
+  *																									        *
+  ***********************************************************************************************************/
+
 	Uart_InitTypeDef Uart_InitStruct;
 
 	huart2.Instance = USART2;
@@ -365,7 +373,15 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)		// USART Interrupt Receive Function
+  /**********************************************************************************************************
+  *																									    	*
+  * 	FUNCTION	 : HAL_UART_RxCpltCallback															    *
+  * 	DESCRIPTIONS : UART Interrupt Receive Function. Getting receive data from rx_call_buffer, then		*
+  * 				   count each index of the data and write in rx_buffer. 		  						*
+  *																									  		*
+  **********************************************************************************************************/
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 	/* rx_buffer start over solution. */
 	rx_buffer[count] = *rx_call_buffer;
@@ -387,6 +403,13 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)		// USART Interrupt Rece
   * @param  argument: Not used
   * @retval None
   */
+
+  /**********************************************************************************************************
+  *																									    	*
+  * 	FUNCTION	 : LEDTask01()																		    *
+  * 	DESCRIPTIONS : Led blink with special times and Receive the strings with UART Interrupt. 		  	*
+  *																									    	*
+  **********************************************************************************************************/
 
 /* USER CODE END Header_LEDTask01 */
 void LEDTask01(void const * argument)
@@ -469,6 +492,14 @@ void LEDTask01(void const * argument)
 * @param argument: Not used
 * @retval None
 */
+
+  /**********************************************************************************************************
+  *																									    	*
+  * 	FUNCTION	 : ECHOTask02()																		    *
+  * 	DESCRIPTIONS : Echo the data when receive string from UART Interrupt. 		  						*
+  *																										    *
+  **********************************************************************************************************/
+
 /* USER CODE END Header_ECHOTask02 */
 void ECHOTask02(void const * argument)
 {

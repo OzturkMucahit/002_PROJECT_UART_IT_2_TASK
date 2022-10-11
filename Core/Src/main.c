@@ -31,7 +31,12 @@
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 
+typedef struct				// Uart_InitTypeDef Struct for configuring the UART Parameters.
+{
+	uint32_t baudrate;
+	uint8_t uart_parameters;
 
+}Uart_InitTypeDef;
 
 /* USER CODE END PTD */
 
@@ -46,6 +51,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 UART_HandleTypeDef huart2;
+
 
 osThreadId Task01Handle;
 osThreadId Task02Handle;
@@ -216,11 +222,108 @@ static void MX_USART2_UART_Init(void)
   /* USER CODE BEGIN USART2_Init 1 */
 
   /* USER CODE END USART2_Init 1 */
-  huart2.Instance = USART2;
-  huart2.Init.BaudRate = 115200;
-  huart2.Init.WordLength = UART_WORDLENGTH_8B;
-  huart2.Init.StopBits = UART_STOPBITS_1;
-  huart2.Init.Parity = UART_PARITY_NONE;
+
+	Uart_InitTypeDef Uart_InitStruct;
+
+	huart2.Instance = USART2;
+
+	Uart_InitStruct.baudrate = 5;
+	Uart_InitStruct.uart_parameters = 1;
+
+	switch(Uart_InitStruct.baudrate)
+	{
+	case 0:
+		huart2.Init.BaudRate = 4800;
+		break;
+	case 1:
+		huart2.Init.BaudRate = 9600;
+		break;
+	case 2:
+		huart2.Init.BaudRate = 19200;
+		break;
+	case 3:
+		huart2.Init.BaudRate = 38400;
+		break;
+	case 4:
+		huart2.Init.BaudRate = 57600;
+		break;
+	case 5:
+		huart2.Init.BaudRate = 115200;
+		break;
+	default :
+		huart2.Init.BaudRate = 115200;
+		break;
+	}
+
+	switch(Uart_InitStruct.uart_parameters)
+	{
+	case 0:
+		huart2.Init.WordLength = UART_WORDLENGTH_8B;
+		huart2.Init.StopBits = UART_STOPBITS_1;
+		huart2.Init.Parity = UART_PARITY_NONE;
+		break;
+	case 1:
+		huart2.Init.WordLength = UART_WORDLENGTH_8B;
+		huart2.Init.StopBits = UART_STOPBITS_2;
+		huart2.Init.Parity = UART_PARITY_NONE;
+		break;
+	case 2:
+		huart2.Init.WordLength = UART_WORDLENGTH_8B;
+		huart2.Init.StopBits = UART_STOPBITS_1;
+		huart2.Init.Parity = UART_PARITY_ODD;
+		break;
+	case 3:
+		huart2.Init.WordLength = UART_WORDLENGTH_8B;
+		huart2.Init.StopBits = UART_STOPBITS_2;
+		huart2.Init.Parity = UART_PARITY_ODD;
+		break;
+	case 4:
+		huart2.Init.WordLength = UART_WORDLENGTH_8B;
+		huart2.Init.StopBits = UART_STOPBITS_1;
+		huart2.Init.Parity = UART_PARITY_EVEN;
+		break;
+	case 5:
+		huart2.Init.WordLength = UART_WORDLENGTH_8B;
+		huart2.Init.StopBits = UART_STOPBITS_2;
+		huart2.Init.Parity = UART_PARITY_EVEN;
+		break;
+	case 6:
+		huart2.Init.WordLength = UART_WORDLENGTH_9B;
+		huart2.Init.StopBits = UART_STOPBITS_1;
+		huart2.Init.Parity = UART_PARITY_NONE;
+		break;
+	case 7:
+		huart2.Init.WordLength = UART_WORDLENGTH_9B;
+		huart2.Init.StopBits = UART_STOPBITS_2;
+		huart2.Init.Parity = UART_PARITY_NONE;
+		break;
+	case 8:
+		huart2.Init.WordLength = UART_WORDLENGTH_9B;
+		huart2.Init.StopBits = UART_STOPBITS_1;
+		huart2.Init.Parity = UART_PARITY_ODD;
+		break;
+	case 9:
+		huart2.Init.WordLength = UART_WORDLENGTH_9B;
+		huart2.Init.StopBits = UART_STOPBITS_2;
+		huart2.Init.Parity = UART_PARITY_ODD;
+		break;
+	case 10:
+		huart2.Init.WordLength = UART_WORDLENGTH_9B;
+		huart2.Init.StopBits = UART_STOPBITS_1;
+		huart2.Init.Parity = UART_PARITY_EVEN;
+		break;
+	case 11:
+		huart2.Init.WordLength = UART_WORDLENGTH_9B;
+		huart2.Init.StopBits = UART_STOPBITS_2;
+		huart2.Init.Parity = UART_PARITY_EVEN;
+		break;
+	default :
+		huart2.Init.WordLength = UART_WORDLENGTH_8B;
+		huart2.Init.StopBits = UART_STOPBITS_1;
+		huart2.Init.Parity = UART_PARITY_NONE;
+		break;
+	}
+
   huart2.Init.Mode = UART_MODE_TX_RX;
   huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
   huart2.Init.OverSampling = UART_OVERSAMPLING_16;
@@ -268,7 +371,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)		// USART Interrupt Rece
 	rx_buffer[count] = *rx_call_buffer;
 	count++;
 
-  HAL_UART_Receive_IT(&huart2,(uint8_t*)rx_call_buffer, 1);
+  HAL_UART_Receive_IT(&huart2, (uint8_t*)rx_call_buffer, 1);
 
 	if (*rx_call_buffer == '\n')
 	{
@@ -284,6 +387,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)		// USART Interrupt Rece
   * @param  argument: Not used
   * @retval None
   */
+
 /* USER CODE END Header_LEDTask01 */
 void LEDTask01(void const * argument)
 {
@@ -291,7 +395,7 @@ void LEDTask01(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-	  HAL_UART_Receive_IT(&huart2,(uint8_t*)rx_call_buffer, 1);
+	  HAL_UART_Receive_IT(&huart2, (uint8_t*)rx_call_buffer, 1);
 
       if (rx_buffer[0] == 's' && rx_buffer[1] == 't' && rx_buffer[2] == 'a' && rx_buffer[3] == 'r' && rx_buffer[4] == 't')		// "start" string.
 	  {
@@ -372,13 +476,10 @@ void ECHOTask02(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-//	  HAL_UART_Transmit_IT(&huart2, (uint8_t*)tx_buffer, sprintf(tx_buffer, "Task02 Work ! \r\n"));		// TASK02 USART Transmit and Cooperative Multitasking test.
-//	  osDelay(1000);
-
 	  HAL_UART_Transmit_IT(&huart2, (uint8_t*)tx_buffer, i);		// ECHO working in this line.
 	  osDelay(1000);
 
-	  HAL_UART_Receive_IT(&huart2,(uint8_t*)rx_call_buffer, 1);
+	  HAL_UART_Receive_IT(&huart2, (uint8_t*)rx_call_buffer, 1);
 
 	  if (rx_buffer[0] == 's' && rx_buffer[1] == 't' && rx_buffer[2] == 'o' && rx_buffer[3] == 'p')		// Echo task will be suspend with "stop" string.
 	  {
